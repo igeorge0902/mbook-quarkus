@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration SYSTEM "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<!-- it uses local dtd file -->
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/login_</property>
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="hibernate.connection.username">sqluser</property>
+        <property name="hibernate.connection.password">sqluserpw</property>
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+        <property name="hibernate.current_session_context_class">thread</property>
+        <property name="hibernate.connection.autocommit">false</property>
+<!-- <property name="hibernate.hbm2ddl.auto">create</property> -->
+        <property name="hibernate.show_sql">false</property>
+        <property name="hibernate.format_sql">true</property>
+        <property name="hibernate.generate_statistics">true</property>
+        <property name="hibernate.c3p0.max_statements">50</property>
+        <property name="hibernate.c3p0.min_size">5</property>
+        <property name="hibernate.c3p0.max_size">20</property>
+        <property name="hibernate.c3p0.timeout">1800</property> <!-- 30 minutes -->
+        <property name="hibernate.c3p0.idle_test_period">300</property> <!-- Test connections every 5 min -->
+        <property name="hibernate.c3p0.validate">true</property>
+        <property name="hibernate.c3p0.preferredTestQuery">SELECT 1</property>
+        <property name="show_sql">false</property>
+        <mapping class="com.jeet.api.Devices" />
+        <mapping class="com.jeet.api.Logins" />
+        <mapping class="com.jeet.api.Tokens" />
+        <mapping class="com.jeet.broadcasting.eventModel.EventState" />
+        <mapping class="com.jeet.broadcasting.eventModel.NewsSettings" />
+        <mapping class="com.jeet.broadcasting.eventModel.AddMovie" />
+    </session-factory>
+</hibernate-configuration>
