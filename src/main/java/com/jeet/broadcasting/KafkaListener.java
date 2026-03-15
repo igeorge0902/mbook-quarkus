@@ -36,7 +36,7 @@ public class KafkaListener {
         consumer.subscribe(Collections.singletonList("ios-users-notifications"));
 
         consumerThread = new Thread(() -> {
-            while (true) {
+            while (running) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
                 for (ConsumerRecord<String, String> record : records) {
                  //   bh.saveNewEvent(record.value());
@@ -56,5 +56,6 @@ public class KafkaListener {
             consumerThread.join(2000);
         } catch (InterruptedException ignored) {
         }
+        consumer.close();
     }
 }

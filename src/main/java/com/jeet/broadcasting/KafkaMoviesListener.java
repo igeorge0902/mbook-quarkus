@@ -38,7 +38,7 @@ public class KafkaMoviesListener {
         consumer.subscribe(Collections.singletonList("ios-movies-notifications2"));
 
         consumerThread = new Thread(() -> {
-            while (true) {
+            while (running) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
                 for (ConsumerRecord<String, String> record : records) {
                     AddMovie event = deserialization.deserializeAddMovie(record.value());
@@ -54,7 +54,11 @@ public class KafkaMoviesListener {
 
     @PreDestroy
     public void stopConsumer() {
+        running = false;
+        try {
+            consumerThread.join(2000);
+        } catch (InterruptedException ignored) {
+        }
         consumer.close();
-        consumerThread.interrupt();
     }
 }
