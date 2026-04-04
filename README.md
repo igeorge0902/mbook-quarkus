@@ -10,6 +10,12 @@ User, device, and profile API for the Cinemas booking platform. Runs on port **8
 - **News events** — `GET /rest/news/{user}` returns pending notification events for a user.
 - **Realtime notifications** — Kafka consumer (`ios-users-notifications` topic) broadcasts user-state changes via WebSocket at `/ws`.
 
+## Web flow boundary
+
+- `mbook-quarkus` handles user/profile/device APIs only (`/rest/user`, `/rest/device`, `/rest/news`).
+- Movie listing, venue/date/seat selection, and checkout APIs are served by `mbooks-quarkus`.
+- AngularJS web flow state (`StateService`) lives in `dalogin-quarkus` frontend and is not persisted in `mbook`.
+
 ## Architecture
 
 ```
