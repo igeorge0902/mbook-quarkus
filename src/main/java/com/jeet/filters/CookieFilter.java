@@ -14,56 +14,60 @@ import jakarta.ws.rs.ext.Provider;
 @Provider
 @PreMatching
 public class CookieFilter implements ContainerRequestFilter {
- 
+
     private static volatile String xsrfToken;
     private static volatile Map<String, Cookie> cookies;
     private static volatile Cookie cookie;
     private static final int KEYSIZE = 128;
-    private static final int ITERATIONCOUNT = 1000;   
+    private static final int ITERATIONCOUNT = 1000;
     private static AesUtil aesUtil = new AesUtil(KEYSIZE, ITERATIONCOUNT);
-	private static final String SALT = "3FF2EC019C627B945225DEBAD71A01B6985FE84C95A70EB132882F88C0A59A55";
+    private static final String SALT = "3FF2EC019C627B945225DEBAD71A01B6985FE84C95A70EB132882F88C0A59A55";
     private static final String IV = "F27D5C9927726BCEFE7510B1BDD3D137";
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-    	System.out.println("Cookie filter...");
-		System.out.println("Uri: " + requestContext.getUriInfo().getBaseUri().toString());
-		System.out.println("Absolute Path: " + requestContext.getUriInfo().getAbsolutePath().toString());
-		System.out.println("Path: " + requestContext.getUriInfo().getPath());
 
-    	if(requestContext.getUriInfo().getPath().contains("user")) {
-    	cookies = requestContext.getCookies();
+        String path = requestContext.getUriInfo().getPath();
+        if (path != null && (path.matches("^/?user/[^/]+/[^/]+$") || path.matches("^/?device/[^/]+$"))) {
 
-  		if (!cookies.isEmpty()) {
-  			cookie = cookies.get("XSRF-TOKEN");
-  	  		if (cookie != null) {
-  		    xsrfToken = aesUtil.encrypt(SALT, IV, requestContext.getHeaderString("TIME_").toString(), requestContext.getHeaderString("token2").toString());
+            cookies = requestContext.getCookies();
+            if (!cookies.isEmpty()) {
+                cookie = cookies.get("XSRF-TOKEN");
+                if (cookie != null) {
+                    xsrfToken = aesUtil.encrypt(
+                            SALT,
+                            IV,
+                            requestContext.getHeaderString("TIME_").toString(),
+                            requestContext.getHeaderString("token2").toString()
+                    );
 
-			   String actualToken = "";
-			   String token = xsrfToken.trim();
-			   int l = token.length();
+                    String actualToken = "";
+                    String token = xsrfToken.trim();
+                    int l = token.length();
 
-				if (token.endsWith("=")) {
-					actualToken = token.substring(0, l-1);
-				} else {
-					actualToken = xsrfToken;
-				}
-	  	    	System.out.println("Actual token " + actualToken);  
+                    if (token.endsWith("=")) {
+                        actualToken = token.substring(0, l - 1);
+                    } else {
+                        actualToken = xsrfToken;
+                    }
 
-  			   if (!actualToken.equals(cookie.getValue())) {
-  		          	
-  				   requestContext.abortWith(Response.status(Response.Status.FORBIDDEN)
-  	                      .entity("Cannot access X")
-  	                      .build());
-  	                      
-  	                }
-  	  			}
-    		} else {
-    	    	System.out.println("Sending response...");       
-		          	requestContext.abortWith(Response.status(Response.Status.FORBIDDEN)
-	  	                      .entity("Cannot access C")
-	  	                      .build());
-		          	}
-    		}
+                    if (!actualToken.equals(cookie.getValue())) {
+
+                        requestContext.abortWith(
+                                Response.status(Response.Status.FORBIDDEN)
+                                        .entity("Cannot access X")
+                                        .build()
+                        );
+
+                    }
+                }
+            } else {
+                requestContext.abortWith(
+                        Response.status(Response.Status.FORBIDDEN)
+                                .entity("Cannot access C")
+                                .build()
+                );
+            }
+        }
     }
 }
