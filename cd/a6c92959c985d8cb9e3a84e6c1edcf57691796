@@ -1,0 +1,16 @@
+src/main/java/com/jeet/broadcasting/KafkaMoviesListener.java
+  h_d154d11af00b83 10-11,24-27,34,36,38,40,49,53,56,58,61-63,65,67,71,77,82,88,90,95
+src/main/java/com/jeet/db/DAO.java
+  h_d154d11af00b83 10,19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "cda6c92959c985d8cb9e3a84e6c1edcf57691796",
+  "prompts": {},
+  "humans": {
+    "h_d154d11af00b83": {
+      "author": "GASPAR, GYORGY <gyorgy.gaspar@lhsystems.com>"
+    }
+  }
+}
