@@ -7,6 +7,7 @@ import com.jeet.broadcasting.eventModel.AddMovie;
 import com.jeet.broadcasting.eventModel.EventState;
 import com.jeet.logging.LogLevel;
 import com.jeet.logging.ObservedLog;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -15,7 +16,7 @@ import org.hibernate.query.Query;
 
 import java.util.List;
 
-@RequestScoped
+@ApplicationScoped
 public class DAO {
 
     @Inject
