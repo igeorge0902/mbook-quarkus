@@ -58,5 +58,14 @@ public @interface ObservedLog {
      */
     @Nonbinding
     boolean includeResult() default false;
+
+    /**
+     * Zero-based parameter indices that must always be masked regardless of name heuristics.
+     * Use this to explicitly protect sensitive positional arguments (uuid, token, password, etc.)
+     * when {@code includeArgs = true}.
+     * Example: {@code maskedArgIndices = {0, 2}} masks the 1st and 3rd parameter.
+     */
+    @Nonbinding
+    int[] maskedArgIndices() default {};
 }
 

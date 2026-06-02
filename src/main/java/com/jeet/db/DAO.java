@@ -22,6 +22,7 @@ public class DAO {
     @Inject
     Session session;  // Quarkus-managed Hibernate session
 
+    // includeArgs intentionally omitted (default false): sole param is uuid — SEC-001
     @ObservedLog(category = "LOG-ENTITY", level = LogLevel.INFO)
     @Transactional
     public List<Devices> getDevices(String uuid) {
@@ -40,7 +41,7 @@ public class DAO {
         return list;
     }
 
-    @ObservedLog(category = "LOG-ENTITY", level = LogLevel.INFO)
+    @ObservedLog(category = "LOG-ENTITY", level = LogLevel.INFO, includeArgs = true)
     @Transactional
     public Logins getUser(String user) {
         String hql = "from Logins where user = :mUser";
@@ -79,6 +80,7 @@ public class DAO {
         return list.size();
     }
 
+    // includeArgs intentionally omitted (default false): sole param is uuid — SEC-001
     @ObservedLog(category = "LOG-ENTITY", level = LogLevel.DEBUG)
     @Transactional
     public Logins getUuid(String uuid) {
@@ -88,6 +90,7 @@ public class DAO {
                 .uniqueResult();
     }
 
+    // includeArgs intentionally omitted (default false): sole param is a token — SEC-001
     @ObservedLog(category = "LOG-ENTITY", level = LogLevel.DEBUG)
     @Transactional
     public Tokens getToken(String token1) {
@@ -97,6 +100,7 @@ public class DAO {
                 .uniqueResult();
     }
 
+    // includeArgs intentionally omitted (default false): sole param is a token — SEC-001
     @ObservedLog(category = "LOG-ENTITY", level = LogLevel.DEBUG)
     @Transactional
     public Tokens getToken2(String token1) {

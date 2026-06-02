@@ -7,9 +7,11 @@ import jakarta.interceptor.Interceptor;
 import jakarta.interceptor.InvocationContext;
 import org.jboss.logging.Logger;
 
+import java.lang.reflect.Parameter;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * CDI interceptor for structured observability logging.
@@ -36,6 +38,19 @@ import java.util.Map;
 @Priority(Interceptor.Priority.APPLICATION)
 public class ObservedLogInterceptor {
 
+    /**
+     * Parameter name fragments that must always be redacted.
+     * Matched case-insensitively as a substring of the runtime parameter name.
+     * Requires the module compiled with {@code -parameters} (see pom.xml).
+     * SEC-001/SEC-002 enforcement.
+     */
+    private static final Set<String> SENSITIVE_NAMES = Set.of(
+            "uuid", "token", "password", "passwd", "pass", "secret",
+            "key", "nonce", "pin", "card", "cvv", "credential", "auth"
+    );
+
+    private static final String REDACTED = "***";
+
     @AroundInvoke
     public Object around(InvocationContext ctx) throws Exception {
 
@@ -50,7 +65,7 @@ public class ObservedLogInterceptor {
 
 
         emit(cfg.level(), cfg.category(), source, "START",
-                cfg.includeArgs() ? ctx.getParameters() : null, null);
+                cfg.includeArgs() ? redactArgs(ctx.getMethod().getParameters(), ctx.getParameters(), cfg.maskedArgIndices()) : null, null);
 
         try {
             Object result = ctx.proceed();
@@ -69,6 +84,54 @@ public class ObservedLogInterceptor {
                     Map.of("durationMs", durationMs, "error", ex.getClass().getSimpleName()));
             throw ex;
         }
+    }
+
+    /**
+     * Builds a safe copy of the parameter value array for logging.
+     *
+     * <p>A parameter is redacted (replaced with {@value #REDACTED}) if:
+     * <ol>
+     *   <li>Its zero-based index appears in {@code maskedIndices} (explicit annotation control), OR</li>
+     *   <li>Its runtime name (available when compiled with {@code -parameters}) contains any fragment
+     *       from {@link #SENSITIVE_NAMES} (case-insensitive) — SEC-001/SEC-002 heuristic.</li>
+     * </ol>
+     *
+     * <p>If parameter names are not available at runtime (compiled without {@code -parameters}),
+     * generic names like {@code arg0} are produced — these never match {@link #SENSITIVE_NAMES},
+     * so explicit {@code maskedArgIndices} is the reliable fallback in that case.
+     *
+     * @param parameters   method {@link Parameter} array (provides runtime names when {@code -parameters} is set)
+     * @param values       actual argument values from {@link InvocationContext#getParameters()}
+     * @param maskedIndices zero-based indices declared in {@link ObservedLog#maskedArgIndices()}
+     * @return a new array where sensitive positions are replaced with {@value #REDACTED}
+     */
+    private Object[] redactArgs(Parameter[] parameters, Object[] values, int[] maskedIndices) {
+        if (values == null || values.length == 0) {
+            return values;
+        }
+        Object[] safe = Arrays.copyOf(values, values.length);
+        for (int i = 0; i < safe.length; i++) {
+            if (isExplicitlyMasked(i, maskedIndices) || isSensitiveName(parameters, i)) {
+                safe[i] = REDACTED;
+            }
+        }
+        return safe;
+    }
+
+    private boolean isExplicitlyMasked(int index, int[] maskedIndices) {
+        for (int masked : maskedIndices) {
+            if (masked == index) return true;
+        }
+        return false;
+    }
+
+    private boolean isSensitiveName(Parameter[] parameters, int index) {
+        if (parameters == null || index >= parameters.length) return false;
+        String name = parameters[index].getName().toLowerCase();
+        for (String fragment : SENSITIVE_NAMES) {
+            if (name.contains(fragment)) return true;
+        }
+        return false;
     }
 
     /**
