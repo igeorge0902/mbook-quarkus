@@ -1,0 +1,26 @@
+src/main/java/com/jeet/logging/ObservedLog.java
+  s_9922e25e152494::t_8573c0d8acd200 61-69
+src/main/java/com/jeet/db/DAO.java
+  s_9922e25e152494::t_961a366491bf7e 103
+  s_9922e25e152494::t_46dda60cadb0cb 25,83,93
+  s_9922e25e152494::t_18eb4d8408c22f 44
+src/main/java/com/jeet/logging/ObservedLogInterceptor.java
+  s_9922e25e152494::t_aa2d8d05b19f2e 10,14,41-53,68
+  s_9922e25e152494::t_c1cfee3b43c84c 90-136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "e17bf35fa35326b2d5e9c7d36679f4c22f615089",
+  "prompts": {},
+  "sessions": {
+    "s_9922e25e152494": {
+      "agent_id": {
+        "tool": "github-copilot-jetbrains",
+        "id": "1780407722978",
+        "model": "unknown"
+      },
+      "human_author": "GASPAR, GYORGY <gyorgy.gaspar@lhsystems.com>"
+    }
+  }
+}
