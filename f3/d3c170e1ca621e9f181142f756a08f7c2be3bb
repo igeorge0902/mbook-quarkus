@@ -1,0 +1,14 @@
+src/main/resources/application.properties
+  h_d154d11af00b83 2,9-10,18,26-34,36-63,79,83,89,94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "f3d3c170e1ca621e9f181142f756a08f7c2be3bb",
+  "prompts": {},
+  "humans": {
+    "h_d154d11af00b83": {
+      "author": "GASPAR, GYORGY <gyorgy.gaspar@lhsystems.com>"
+    }
+  }
+}
