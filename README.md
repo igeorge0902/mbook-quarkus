@@ -25,8 +25,10 @@ dalogin (ServiceClient)
 mbook (:8888, /mbook-1)
   ├── CiphertextFilter ── verifies Ciphertext == token2 header
   ├── CookieFilter ── reconstructs + validates XSRF-TOKEN
-  ├── BookController ── /rest/user, /rest/device, /rest/news
-  ├── DAO (CDI @RequestScoped) ── Hibernate/JPA queries
+  ├── AccountController ── /rest/user, /rest/device, /rest/newuser, /rest/newemail
+  ├── NewsController ── /rest/news
+  ├── AccountService / NewsService ── controller-to-DAO delegation
+  ├── DAO (CDI @ApplicationScoped) ── Hibernate/JPA queries
   └── KafkaListener → WebSocketServer.broadcastMessage()
            ▼
        MySQL login_

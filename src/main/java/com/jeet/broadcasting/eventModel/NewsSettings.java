@@ -17,4 +17,12 @@ public class NewsSettings implements Serializable {
     @ManyToOne(cascade={CascadeType.PERSIST, CascadeType.REFRESH}, fetch=FetchType.EAGER)
     @JoinColumn(name="logins_id")
     protected Logins user;
+
+    public String getNewsScreening() {
+        return newsScreening;
+    }
+
+    public void setUser(Logins user) {
+        this.user = user;
+    }
 }

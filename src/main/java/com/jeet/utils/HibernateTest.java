@@ -1,57 +1,49 @@
 package com.jeet.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.jeet.broadcasting.eventModel.EventState;
-import org.hibernate.SessionFactory;
-import org.hibernate.stat.Statistics;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import com.google.gson.Gson;
 import com.jeet.api.Devices;
 import com.jeet.api.Logins;
 import com.jeet.db.DAO;
-import com.jeet.db.HibernateUtil;
-import com.jeet.service.BookingHandlerImpl;
+import com.jeet.broadcasting.eventModel.EventState;
+import io.quarkus.runtime.QuarkusApplication;
+import io.quarkus.runtime.annotations.QuarkusMain;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManagerFactory;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 
-public class HibernateTest {
+import java.util.List;
 
-	public static void main(String[] args) throws Exception {
+@QuarkusMain(name = "hibernate-test")
+public class HibernateTest implements QuarkusApplication {
 
-		SessionFactory factory = HibernateUtil.getSessionFactory();
+    @Inject
+    DAO dao;
 
-		Statistics stats = factory.getStatistics(); 
-		stats.setStatisticsEnabled(true);		
+    @Inject
+    EntityManagerFactory entityManagerFactory;
 
-		BookingHandlerImpl bh = new BookingHandlerImpl();
+    @Override
+    public int run(String... args) {
+        Statistics stats = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        stats.setStatisticsEnabled(true);
+        List<EventState> events = dao.getNewEventsForUser("GG");
+        List<Devices> device = dao.getDevices("65f63602-6ddf-11e5-8441-71caa0c5f788");
 
-		List<EventState> events = bh.getNewEventsForUser("GG");
-		List<Devices> device = bh.getDevice("65f63602-6ddf-11e5-8441-71caa0c5f788");
+        System.out.println(events);
+        System.out.println(device);
 
-		JSONObject json = new JSONObject();
-		json.put("device", device);
-		System.out.println("hello");
+        Logins user = dao.getUser("II");
+        if (user.getId() != 0) {
+            System.out.println("hello");
+        } else {
+            System.out.println("no user");
+        }
 
-		Logins user = bh.getUser("II");
-		
-		if(user.getId() !=0) {
-			System.out.println("hello");
-		} else {
-			
-			System.out.println("no user");
-		}
-		
-		int newuser_ = bh.getNewEmail("igeorge1982@gmail.com");
+        int newuser = dao.getNewEmail("igeorge1982@gmail.com");
+        System.out.println(newuser);
 
-		System.out.println(newuser_);
-
-		
         stats.logSummary();
         stats.getCacheRegionStatistics("movies");
-        
-
-	}
-	
+        return 0;
+    }
 }

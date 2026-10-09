@@ -1,6 +1,5 @@
 package com.jeet.broadcasting;
 
-import com.jeet.service.BookingHandlerImpl;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import io.quarkus.runtime.Startup;
@@ -25,7 +24,6 @@ public class KafkaListener {
     public void startConsumer() {
         String bootstrapUrl = System.getenv().getOrDefault("BOOTSTRAP_URL", "localhost:9092");
 
-        BookingHandlerImpl bh = new BookingHandlerImpl();
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapUrl);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "mbook-users-group");

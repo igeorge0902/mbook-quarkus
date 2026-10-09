@@ -28,7 +28,8 @@ public class CookieFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext requestContext) throws IOException {
 
         String path = requestContext.getUriInfo().getPath();
-        if (path != null && (path.matches("^/?user/[^/]+/[^/]+$") || path.matches("^/?device/[^/]+$"))) {
+        if (path != null && (path.matches("^/?user/[^/]+/[^/]+$") || path.matches("^/?device/[^/]+$")
+                || path.matches("^/?(rest/)?news-settings/screen$"))) {
 
             cookies = requestContext.getCookies();
             if (!cookies.isEmpty()) {

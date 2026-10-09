@@ -5,11 +5,13 @@ import com.jeet.api.Logins;
 import com.jeet.api.Tokens;
 import com.jeet.broadcasting.eventModel.AddMovie;
 import com.jeet.broadcasting.eventModel.EventState;
+import com.jeet.broadcasting.eventModel.NewsSettings;
 import com.jeet.logging.LogLevel;
 import com.jeet.logging.ObservedLog;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -130,5 +132,40 @@ public class DAO {
         return session.createQuery(hql, EventState.class)
                 .setParameter("mUser", user)
                 .getResultList();
+    }
+
+    @Transactional
+    public NewsSettings findNewsSettings(int loginsId) {
+        return session.createQuery(
+                        "from NewsSettings n where n.user.id = :id", NewsSettings.class)
+                .setParameter("id", loginsId)
+                .uniqueResult();
+    }
+
+    // A separate DAO transaction completes before the service reports success.
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public void upsertNewsScreening(int loginsId, String yesNo) {
+        if (!"yes".equals(yesNo) && !"no".equals(yesNo)) {
+            throw new IllegalArgumentException("Screen news must be yes or no");
+        }
+        // Lock the owner even when no settings row exists, serializing first upserts.
+        Logins owner = session.find(Logins.class, loginsId, LockModeType.PESSIMISTIC_WRITE);
+        if (owner == null) {
+            throw new IllegalStateException("News settings owner not found");
+        }
+        NewsSettings settings = session.createQuery(
+                        "from NewsSettings n where n.user.id = :id", NewsSettings.class)
+                .setParameter("id", loginsId)
+                .uniqueResult();
+        if (settings == null) {
+            settings = new NewsSettings();
+            settings.setUser(owner);
+            settings.newsScreening = yesNo;
+            session.persist(settings);
+        } else {
+            settings.newsScreening = yesNo;
+        }
+        // Flush/commit errors propagate through the transaction interceptor.
+        session.flush();
     }
 }

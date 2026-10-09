@@ -1,5 +1,6 @@
 package com.jeet.broadcasting.eventModel;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -17,6 +18,10 @@ public class AddMovie implements Serializable {
 	public String venue;
 	public String screeningId;
 	public String screeningDatesId;
+	// Java serialization carries this field; persistence and legacy /news JSON do not.
+	@Transient
+	@JsonIgnore
+	public String eventType;
 
 	public int getId() {
 		return id;

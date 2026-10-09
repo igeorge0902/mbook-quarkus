@@ -1,8 +1,13 @@
 package com.jeet.broadcasting;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.jeet.api.Logins;
 import com.jeet.broadcasting.eventModel.AddMovie;
 import com.jeet.broadcasting.serialization.Deserialization;
-import com.jeet.service.BookingHandlerImpl;
+import com.jeet.service.NewsService;
+import com.jeet.service.AccountService;
+import com.jeet.service.NewsSettingsService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import io.quarkus.runtime.Startup;
@@ -17,13 +22,29 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
+import java.util.Map;
+import java.util.Set;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 @Startup
 public class KafkaMoviesListener {
+    private static final Logger LOG = Logger.getLogger(KafkaMoviesListener.class);
 
     @Inject
-    BookingHandlerImpl bh;
+    NewsService newsService;
+
+    @Inject
+    ActiveSessionResolver resolver;
+
+    @Inject
+    AccountService accounts;
+
+    @Inject
+    NewsSettingsService settings;
+
+    @Inject
+    ObjectMapper mapper;
 
     private KafkaConsumer<String, String> consumer;
     private Thread consumerThread;
@@ -56,11 +77,16 @@ public class KafkaMoviesListener {
 
                     for (ConsumerRecord<String, String> record : records) {
 
-                        AddMovie event = deserialization.deserializeAddMovie(record.value());
-                        bh.saveNewEvent(event);
-
-                        WebSocketServer.broadcastMessage(record.value());
-                        System.out.println("Sent to WebSocket: " + record.value());
+                        try {
+                            AddMovie event = deserialization.deserializeAddMovie(record.value());
+                            if (event == null) {
+                                throw new IllegalStateException("Screen-news deserialization failed");
+                            }
+                            newsService.saveNewEvent(event);
+                            deliverScreenNews(event);
+                        } catch (RuntimeException e) {
+                            LOG.error("Screen-news record skipped after processing failure", e);
+                        }
                     }
 
                 } catch (Exception e) {
@@ -81,6 +107,43 @@ public class KafkaMoviesListener {
         });
 
         consumerThread.start();
+    }
+
+    private void deliverScreenNews(AddMovie event) {
+        Map<String, Set<String>> active;
+        try {
+            active = resolver.deviceUsers();
+        } catch (RuntimeException e) {
+            LOG.error("Screen news skipped: active sessions unavailable", e);
+            return;
+        }
+        // Kafka carries Base64 Java serialization, not JSON. Expose only the wire fields.
+        ObjectNode payload = mapper.createObjectNode();
+        payload.put("movie", event.movie);
+        payload.put("date", event.date);
+        payload.put("venue", event.venue);
+        payload.put("screeningId", event.screeningId);
+        payload.put("screeningDatesId", event.screeningDatesId);
+        payload.put("eventType", event.eventType == null ? "created" : event.eventType);
+        payload.put("category", "screening");
+        String message = payload.toString();
+        for (String deviceId : WebSocketServer.registeredDevices()) {
+            Set<String> users = active.getOrDefault(deviceId, Set.of());
+            if (users.size() != 1) {
+                continue;
+            }
+            try {
+                Logins login = accounts.getUser(users.iterator().next());
+                if (login.getId() == 0) {
+                    continue;
+                }
+                if (settings.isScreenNewsEnabled(login.getId())) {
+                    WebSocketServer.sendToDevice(deviceId, message);
+                }
+            } catch (RuntimeException e) {
+                LOG.error("Screen news skipped: recipient lookup failed", e);
+            }
+        }
     }
 
     @PreDestroy

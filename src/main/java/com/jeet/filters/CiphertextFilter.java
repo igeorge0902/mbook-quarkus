@@ -17,7 +17,8 @@ public class CiphertextFilter implements ContainerRequestFilter {
         String path = requestContext.getUriInfo().getPath();
 
         if (path != null
-                && (path.matches("^/?user/[^/]+/[^/]+$") || path.matches("^/?device/[^/]+$"))) {
+                && (path.matches("^/?user/[^/]+/[^/]+$") || path.matches("^/?device/[^/]+$")
+                || path.matches("^/?(rest/)?news-settings/screen$"))) {
 
             String headerToken = requestContext.getHeaderString("Ciphertext");
             String token2 = requestContext.getHeaderString("token2");
